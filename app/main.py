@@ -104,27 +104,31 @@ async def chat(request):
     if flag:
         mode, reason, reply, source = flag["mode"], flag["reason"], flag["reply"], "safety"
     else:
-        if target and re.search(r"\b" + re.escape(target) + r"\b", text.lower()):
+        if engine.matches_target(text, target):
             praised, prev_word = True, engine.word_by_key(target)
             stars += 1
             sel["conf"] += 1
+        level = engine.level_for(stars)
         if praised:
             mode, reason = "learn", "You said the word!"
-        else:
-            mode, reason = engine.detect_mode(text, s["mood"], modes)
-        level = engine.level_for(stars)
-        if mode == "learn":
-            if praised:
-                widx += 1
+            widx += 1
             word = engine.pick_word(level, widx)
             target = word[0]
-        msgs = llm.build_messages(s, mode, s["mood"], word, prev_word, praised, history, text,
-                                  db.recent_misses(sid))
-        reply = await llm.complete(msgs)
-        if reply:
-            source = "llm"
+            said = prev_word[0] if prev_word else s["target"]
+            reply = engine.instant_praise(said, stars - 1)
+            source = "praise"
         else:
-            reply = engine.fallback(mode, s, word, prev_word, praised, s["mood"])
+            mode, reason = engine.detect_mode(text, s["mood"], modes)
+            if mode == "learn":
+                word = engine.pick_word(level, widx)
+                target = word[0]
+            msgs = llm.build_messages(s, mode, s["mood"], word, prev_word, praised, history, text,
+                                      db.recent_misses(sid))
+            reply = await llm.complete(msgs)
+            if reply:
+                source = "llm"
+            else:
+                reply = engine.fallback(mode, s, word, prev_word, praised, s["mood"])
 
     new_level = engine.level_for(stars)
     db.update(sid, stars=stars, level=new_level, widx=widx, target=target,
@@ -139,6 +143,21 @@ async def chat(request):
                          "suggest": "play" if mode == "engage" else None,
                          "state": engine.state_view(db.get_session(sid))},
                         headers={"Server-Timing": f"app;dur={ms}"})
+
+
+async def practice(request):
+    d = await read_json(request)
+    sid = valid_sid(d.get("session_id"))
+    word = engine.word_by_key(str(d.get("word", "")).strip().lower())
+    if not sid or not word:
+        return err("bad request")
+    session_with_name(sid, d.get("name"))
+    key, emo, phrase = word
+    db.update(sid, target=key)
+    reply = f"{emo} Let’s practice “{key}”! {phrase} Can you say “{key}”?"
+    db.add_message(sid, "assistant", reply, "learn")
+    return JSONResponse({"reply": reply, "mode": "learn", "reason": "Word of the day practice",
+                         "state": engine.state_view(db.get_session(sid))})
 
 
 async def quiz(request):
@@ -194,6 +213,7 @@ app = Starlette(
         Route("/api/state", state),
         Route("/api/mood", mood, methods=["POST"]),
         Route("/api/chat", chat, methods=["POST"]),
+        Route("/api/practice", practice, methods=["POST"]),
         Route("/api/quiz", quiz),
         Route("/api/answer", answer, methods=["POST"]),
         Mount("/static", StaticFiles(directory=BASE / "static"), name="static"),

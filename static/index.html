@@ -41,11 +41,20 @@
           <circle cx="32" cy="32" r="2.6" fill="#2d2836"/></svg>
       </div>
     </header>
+    <div class="wotd clay sage">
+      <span class="wotd-emo" id="wotdEmo" aria-hidden="true">🍎</span>
+      <div class="wotd-meta">
+        <p class="eyebrow">Word of the day</p>
+        <b id="wotdWord">apple</b>
+      </div>
+      <button type="button" class="icon clay" id="wotdSay" aria-label="Hear the word">🔊</button>
+      <button type="button" class="btn-dark wotd-go" id="wotdPractice">Practice</button>
+    </div>
     <div class="chips"><span class="chip clay sage" id="lvChip">L1 · Little Sprout</span><span class="chip clay lav" id="starChip">⭐ 0</span></div>
 
-    <div class="dilly clay">
-      <div class="dilly-stage">
-        <img id="mascot" src="/static/img/mascot.webp" alt="Dilly, your doll friend">
+    <div class="dora clay">
+      <div class="dora-stage">
+        <img id="mascot" src="/static/img/mascot.webp" alt="Dora, your doll friend">
         <div class="bubble clay soft">How are you feeling today?</div>
       </div>
       <div class="moods" id="moods"></div>
@@ -54,12 +63,12 @@
     <div class="tiles">
       <button class="tile clay blue" data-go="learn"><i>🌱</i><b>Learn</b><small>New words</small></button>
       <button class="tile clay" data-go="play"><i>🎈</i><b>Play</b><small>Quiz &amp; games</small></button>
-      <button class="tile clay sage" data-go="chat"><i>💬</i><b>Chat</b><small>Talk to Dilly</small></button>
+      <button class="tile clay sage" data-go="chat"><i>💬</i><b>Chat</b><small>Talk to Dora</small></button>
       <button class="tile clay lav" data-go="progress"><i>🪄</i><b>My Crane</b><small>See me grow</small></button>
     </div>
 
     <form class="ask clay soft" id="askForm">
-      <input id="askIn" placeholder="Say hi to Dilly…" autocomplete="off" maxlength="300">
+      <input id="askIn" placeholder="Say hi to Dora…" autocomplete="off" maxlength="300">
       <button class="send btn-dark" aria-label="Send">→</button>
     </form>
   </section>
@@ -68,7 +77,7 @@
   <section class="screen chat" id="s-chat">
     <header class="bar">
       <button class="back clay" data-go="home" aria-label="Back">‹</button>
-      <div class="who"><b>Dilly</b><span class="mode" id="modeBadge" data-mode="chat">💬 Chatting</span></div>
+      <div class="who"><b>Dora</b><span class="mode" id="modeBadge" data-mode="chat">💬 Chatting</span></div>
       <span class="lat" id="lat" title="End-to-end response time">⚡ –</span>
       <button class="icon clay" id="voiceBtn" aria-label="Voice on/off">🔊</button>
     </header>
@@ -77,7 +86,7 @@
     <div class="quick" id="quick"></div>
     <form class="composer clay soft" id="chatForm">
       <button type="button" class="mic" id="mic" aria-label="Speak">🎤</button>
-      <input id="chatIn" placeholder="Ask Dilly anything…" autocomplete="off" maxlength="300">
+      <input id="chatIn" placeholder="Ask Dora anything…" autocomplete="off" maxlength="300">
       <button class="send btn-dark" aria-label="Send">→</button>
     </form>
   </section>

@@ -95,10 +95,35 @@ def sel_delta(text):
     return d
 
 
-TIPS = {"awareness": "tell Dilly how you feel today.",
+TIPS = {"awareness": "tell Dora how you feel today.",
         "confidence": "try one more quiz round. Mistakes help us grow!",
-        "curiosity": "ask Dilly a “why” question.",
-        "kindness": "say “please” and “thank you” to Dilly."}
+        "curiosity": "ask Dora a “why” question.",
+        "kindness": "say “please” and “thank you” to Dora."}
+
+
+def _fold(text):
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", (text or "").lower())).strip()
+
+
+def matches_target(text, target):
+    """Case- and punctuation-tolerant check that the child said the current target word/phrase."""
+    t, tgt = _fold(text), _fold(target)
+    if not tgt:
+        return False
+    return bool(re.search(r"\b" + re.escape(tgt) + r"\b", t))
+
+
+PRAISE = [
+    "Yay! Super job saying “{w}”! High five! 🎉",
+    "Wow! You said “{w}”! I’m so proud of you! ⭐",
+    "Yes! “{w}” is perfect! Big smile! 😄",
+    "Hooray! You did it — “{w}”! Gold star! 🌟",
+    "Amazing! “{w}” sounds great! Let’s clap! 👏",
+]
+
+
+def instant_praise(word, n=0):
+    return PRAISE[n % len(PRAISE)].format(w=word)
 
 
 def state_view(s):

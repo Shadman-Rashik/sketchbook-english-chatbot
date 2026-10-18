@@ -58,12 +58,19 @@ button{cursor:pointer}
 h1{font-size:24px;line-height:1.15;font-weight:700;margin:4px 0 4px}
 .sub{font-size:13px;color:var(--muted);font-weight:500}
 .clock{width:70px;height:70px;flex:none;padding:4px;border-radius:50%}
+.wotd{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 12px;margin:8px 0 0;border-radius:22px}
+.wotd-emo{font-size:26px;line-height:1;flex:none}
+.wotd-meta{flex:1;min-width:0}
+.wotd-meta .eyebrow{margin:0}
+.wotd b{display:block;font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wotd .icon{width:40px;height:40px;font-size:16px}
+.wotd-go{padding:8px 14px;font-size:12.5px;font-weight:700;flex:none}
 .chips{display:flex;gap:8px;margin:10px 0 12px}
 .chip{padding:7px 14px;font-size:12.5px;font-weight:700;border-radius:999px}
-.dilly{padding:14px 16px 12px;margin-bottom:14px;overflow:hidden}
-.dilly-stage{position:relative;height:172px;display:flex;justify-content:center;align-items:flex-end}
+.dora{padding:14px 16px 12px;margin-bottom:14px;overflow:hidden}
+.dora-stage{position:relative;height:148px;display:flex;justify-content:center;align-items:flex-end}
 #mascot{height:100%;max-width:62%;object-fit:contain;filter:drop-shadow(0 14px 14px rgba(140,90,60,.32));animation:bob 4.5s ease-in-out infinite}
-.dilly-stage svg{height:80%;animation:bob 4.5s ease-in-out infinite}
+.dora-stage svg{height:80%;animation:bob 4.5s ease-in-out infinite}
 .bubble{position:absolute;top:2px;right:0;max-width:46%;padding:10px 14px;font-size:13.5px;font-weight:700;line-height:1.3;
   border-radius:20px 20px 6px 20px;animation:pop .6s .3s both}
 .moods{display:flex;justify-content:space-between;gap:6px;margin-top:10px}
@@ -181,4 +188,4 @@ h1{font-size:24px;line-height:1.15;font-weight:700;margin:4px 0 4px}
 @keyframes breathe{0%,100%{transform:scale(.7)}50%{transform:scale(1.18)}}
 @keyframes burst{to{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(1.2)}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-@media(max-height:700px){.dilly-stage{height:170px}.splash-crane{width:220px;margin-top:12px}}
+@media(max-height:700px){.dora-stage{height:128px}.splash-crane{width:220px;margin-top:12px}}

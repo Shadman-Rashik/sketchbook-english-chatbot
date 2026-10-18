@@ -30,7 +30,7 @@ def chat(msg):
 h = requests.get(f"{BASE}/api/health", timeout=60).json()
 check("health", h.get("ok") is True, f"(llm enabled: {h.get('llm')})")
 
-j, _ = chat("hello dilly")
+j, _ = chat("hello dora")
 check("chat mode", j["mode"] == "chat", j["mode"])
 j, _ = chat("I feel sad today")
 check("support mode on sad", j["mode"] == "support", j["reply"][:50])
@@ -40,6 +40,11 @@ j, _ = chat("let's play a game")
 check("engage mode on play", j["mode"] == "engage")
 j, _ = chat("my phone is 01712345678")
 check("privacy guard", j["source"] == "safety")
+p = requests.post(f"{BASE}/api/practice", json={"session_id": SID, "word": "apple", "name": "Mimi"}, timeout=10)
+check("practice sets word", p.ok)
+j, _ = chat("Apple!")
+check("instant praise skips LLM", j.get("source") == "praise" and j.get("praised") is True, str(j.get("source")))
+check("instant praise includes the word", "apple" in j.get("reply", "").lower())
 
 # level up through the quiz
 st = requests.get(f"{BASE}/api/state", params={"session_id": SID}, timeout=10).json()["state"]

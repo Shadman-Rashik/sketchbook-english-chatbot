@@ -47,8 +47,8 @@ function burst(el) {
     document.body.append(s); setTimeout(() => s.remove(), 950);
   }
 }
-function speak(t) {
-  if (!voiceOn || !('speechSynthesis' in window)) return;
+function speak(t, force) {
+  if ((!voiceOn && !force) || !('speechSynthesis' in window)) return;
   try {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(t.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, ''));
@@ -86,6 +86,42 @@ function tick() {
 }
 setInterval(tick, 1000); tick();
 
+/* Word of the day: curriculum POOLS, index from local calendar date (no API). */
+const WOTD = [
+  ['apple', '🍎'], ['cat', '🐱'], ['dog', '🐶'], ['ball', '⚽'], ['sun', '🌞'],
+  ['fish', '🐟'], ['car', '🚗'], ['tree', '🌳'], ['bird', '🐦'], ['book', '📖'],
+  ['one', '1️⃣'], ['two', '2️⃣'], ['three', '3️⃣'], ['hello', '👋'],
+  ['big', '🐘'], ['small', '🐭'], ['hot', '🔥'], ['cold', '🧊'],
+  ['happy', '😊'], ['friend', '🤝'], ['jump', '🤸'], ['water', '💧'],
+  ['mom', '👩'], ['sleep', '😴'],
+];
+function wordOfTheDay() {
+  const d = new Date();
+  const i = (d.getFullYear() * 372 + (d.getMonth() + 1) * 31 + d.getDate()) % WOTD.length;
+  return { key: WOTD[i][0], emoji: WOTD[i][1] };
+}
+function renderWotd() {
+  const w = wordOfTheDay();
+  $('#wotdEmo').textContent = w.emoji;
+  $('#wotdWord').textContent = w.key;
+}
+renderWotd();
+$('#wotdSay').onclick = () => speak(wordOfTheDay().key, true);
+$('#wotdPractice').onclick = async () => {
+  const w = wordOfTheDay();
+  if (busy) return;
+  busy = true;
+  try {
+    const r = await api('/api/practice', { session_id: sid, word: w.key, name });
+    show('chat');
+    addMsg('bot', r.reply);
+    setMode(r.mode, r.reason);
+    defaultChips();
+    state = r.state; renderStats(); speak(r.reply);
+  } catch { toast('Dora is sleepy. Try again!'); }
+  busy = false;
+};
+
 /* ---------- state rendering ---------- */
 function renderStats() {
   if (!state) return;
@@ -122,7 +158,7 @@ function addMsg(role, text) {
 }
 function typing() { const d = document.createElement('div'); d.className = 'm bot clay soft typing'; d.innerHTML = '<i></i><i></i><i></i>'; msgs.append(d); scrollDown(); return d; }
 function setMode(m, why) {
-  const b = $('#modeBadge'); b.dataset.mode = m; b.textContent = MODES[m] || MODES.chat; $('#why').textContent = why ? `Dilly noticed: ${why}` : '';
+  const b = $('#modeBadge'); b.dataset.mode = m; b.textContent = MODES[m] || MODES.chat; $('#why').textContent = why ? `Dora noticed: ${why}` : '';
 }
 function quickChips(list) {
   $('#quick').innerHTML = '';
@@ -132,7 +168,7 @@ const defaultChips = () => quickChips([
   ['🌱 Teach me a word', () => sendChat('Teach me a new word')], ['🎈 Let\'s play', () => sendChat('Let\'s play a game')],
   ['😄 I feel happy', () => sendChat('I feel happy today')], ['😢 I feel sad', () => sendChat('I feel sad')]]);
 function greet() {
-  const t = `Hi ${name || 'friend'}! I'm Dilly. 🌸 Tell me how you feel, or ask me to teach you a word!`;
+  const t = `Hi ${name || 'friend'}! I'm Dora. 🌸 Tell me how you feel, or ask me to teach you a word!`;
   addMsg('bot', t); defaultChips(); setMode('chat', ''); speak(t);
 }
 function addBreathe() {
@@ -149,7 +185,7 @@ async function sendChat(text) {
     const wait = Math.max(0, 450 - (performance.now() - t0)); await new Promise((ok) => setTimeout(ok, wait)); // gentle pacing, not counted in latency
     t.remove(); const el = addMsg('bot', r.reply);
     setMode(r.mode, r.reason);
-    $('#lat').textContent = `⚡ ${Math.round(performance.now() - t0 - wait)} ms · ${r.source === 'llm' ? 'AI' : r.source === 'safety' ? 'safe' : 'quick'}`;
+    $('#lat').textContent = `⚡ ${Math.round(performance.now() - t0 - wait)} ms · ${r.source === 'llm' ? 'AI' : r.source === 'safety' ? 'safe' : r.source === 'praise' ? 'instant' : 'quick'}`;
     if (r.mode === 'support') addBreathe();
     defaultChips();
     if (r.suggest === 'play') quickChips([['🎈 Open Play', () => show('play')], ['🌱 Teach me a word', () => sendChat('Teach me a new word')]]);
@@ -160,7 +196,7 @@ async function sendChat(text) {
   busy = false;
 }
 $('#chatForm').onsubmit = (e) => { e.preventDefault(); const v = $('#chatIn').value; $('#chatIn').value = ''; sendChat(v); };
-$('#askForm').onsubmit = (e) => { e.preventDefault(); const v = $('#askIn').value; $('#askIn').value = ''; sendChat(v || 'Hello Dilly'); };
+$('#askForm').onsubmit = (e) => { e.preventDefault(); const v = $('#askIn').value; $('#askIn').value = ''; sendChat(v || 'Hello Dora'); };
 $('#voiceBtn').onclick = () => { voiceOn = !voiceOn; $('#voiceBtn').textContent = voiceOn ? '🔊' : '🔇'; if (!voiceOn) speechSynthesis.cancel(); toast(voiceOn ? 'Voice on' : 'Voice off'); };
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -183,7 +219,7 @@ $('#moods').onclick = async (e) => {
     setMode(r.mode, r.reason); if (r.mode === 'support') addBreathe();
     r.mode === 'engage' ? quickChips([['🎈 Open Play', () => show('play')], ['🌱 Teach me a word', () => sendChat('Teach me a new word')]]) : defaultChips();
     state = r.state; renderStats(); speak(r.reply);
-  } catch { toast('Dilly is sleepy. Try again!'); }
+  } catch { toast('Dora is sleepy. Try again!'); }
   busy = false;
 };
 

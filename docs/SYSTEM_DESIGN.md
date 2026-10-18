@@ -1,69 +1,125 @@
 # Sketchbook: System Design
 
-**Product:** an AI-powered English-learning friend for children under 7.
-**Tagline:** *Little Words Matter*. **Mascot:** Dilly, a doll friend.
+**Product:** an AI-powered English-learning friend for children under 7.  
+**Tagline:** *Little Words Matter*. **Mascot:** Dora, a doll friend.
 
-![architecture](architecture.png)
+See also [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## 1. Goals and how they are met
+## 1. Goals
 
-| Requirement | Design response |
+| Requirement | What the code does |
 |---|---|
-| Progressive learning L1/L2/L3 | Stars are the single progress currency. 6 stars unlock L2, 14 unlock L3. Each level has its own word pool (chat teaching) and quiz items (Play). A child earns stars by answering quiz items or by saying the word Dilly just taught. |
-| Child mode detection | `engine.detect_mode()` classifies every message into **learn / chat / engage / support** using intent patterns, the mood check-in, and recent history. Three learning turns in a row switch to *engage* (a game), so the bot never teaches non-stop. The UI shows the detected mode and the reason. |
-| Social & Emotional Learning | Mood check-in, a gentle *support* mode with a guided breathing animation, praise-first feedback, “mistakes help us grow” wording, and four tracked SEL meters (awareness, confidence, curiosity, kindness). |
-| Context-aware responses | The LLM prompt contains level, stars, mood, current mode, recently missed words, and the last 6 messages. The word being taught depends on the level and the child's progress. |
-| < 2 s end-to-end latency | See section 3. |
-| Live deployed URL | Render web service (free tier). |
+| Progressive learning L1 / L2 / L3 | Stars are the only progress currency. `engine.LEVEL_AT` unlocks L2 at 6 stars and L3 at 14. `content.POOLS` and the quiz registry `content.REG` are per level. Stars come from saying the current chat target (`+1`, plus `conf`) or from Play (`+1`, or `+2` every 3rd correct in a streak). |
+| Child mode detection | `engine.detect_mode()` returns `learn`, `chat`, `engage`, or `support`. The chat header shows UI labels Learning / Chatting / Fun time / Here for you plus a reason string. |
+| Social-emotional learning | Home mood check-in (`POST /api/mood`), support-mode breathing bubble, praise-first quiz and chat copy, four SEL counters, CSE Insight on My Crane. |
+| Context-aware replies | Groq system prompt includes name, level, stars, mood, mode, recent misses, last 6 messages, and the word being taught. |
+| Under 2 seconds | Groq hard cap (`LLM_TIMEOUT`, default 1.4 s), keep-alive + startup warm, circuit breaker, rule fallback, and instant praise with no LLM when the child says the target. |
+| Live URL | `render.yaml` defines a Python web service (`uvicorn app.main:app`). |
 
 ## 2. Components
 
-- **Front-end**: static SPA (no build step). Screens: Splash → Home → Chat / Play / My Crane. Web Speech API gives voice output and microphone input, important for children who cannot read yet.
-- **API**: Starlette (ASGI) served by Uvicorn. Stateless handlers; all state is in SQLite. Starlette was chosen over a heavier framework because the app has six small endpoints, no validation-heavy schemas, and a faster cold start on a free tier.
-- **Rule-based brain** (`engine.py`): safety guard, mode detection, progression, SEL scoring, and offline replies.
-- **LLM client** (`llm.py`): Groq (Llama 3.1 8B Instant) through an OpenAI-compatible endpoint, with timeout, circuit breaker and post-processing.
-- **Quiz engine** (`content.py`): item registry; answers are checked on the server, so the client cannot cheat and the LLM is not needed (instant and free).
-- **Persistence** (`db.py`): SQLite with three tables: `sessions`, `messages`, `misses`.
+- **Front-end** (`static/`): one HTML page, five screens (splash, home, chat, play, progress). No build step. Web Speech API for Dora’s voice and the microphone. Session id and optional first name in `localStorage`. Home has a live clock/date and a Word of the Day card (curriculum word from the local calendar date, TTS button, Practice → `POST /api/practice`).
+- **API** (`app/main.py`): Starlette ASGI + Uvicorn. GZip middleware. Routes: `GET /`, `/api/health`, `/api/state`, `POST /api/mood`, `/api/chat`, `/api/practice`, `GET /api/quiz`, `POST /api/answer`, `/static`.
+- **Rule-based brain** (`app/engine.py`): `safety_check`, `detect_mode`, `level_for` / `pick_word`, `matches_target`, `instant_praise`, `sel_delta`, `state_view`, `mood_reply`, `fallback`.
+- **LLM client** (`app/llm.py`): Groq OpenAI-compatible `llama-3.1-8b-instant` (override with `GROQ_MODEL`), `max_tokens` 80, timeout, 3-failure / 30 s breaker, `clean()` (strip markdown, cap ~45 words). Disabled when `GROQ_API_KEY` is unset.
+- **Curriculum** (`app/content.py`): chat word pools L1–L3; quiz items (objects, colors, counts, opposites, greetings, sentences). `make_quiz` picks a level item (20% chance of the level below when `level > 1`) and three shuffled options.
+- **Persistence** (`app/db.py`): SQLite (`DB_PATH`, default `sketchbook.db`). Thread lock. Tables `sessions`, `messages`, `misses`.
 
-## 3. Latency design (< 2 s)
+## 3. Data model
 
-| Step | Budget |
-|---|---|
-| Browser ↔ server network | ~100 ms |
-| Safety + mode detection + context | < 5 ms |
-| LLM call (Groq, ~80 output tokens, keep-alive connection) | typically 300–700 ms, **hard cap 1.4 s** |
-| Rule-based fallback if the LLM times out or errors | < 10 ms |
-| Post-processing + DB write | < 5 ms |
+`sessions(id, name, mood, level, stars, correct, total, streak, widx, target, aw, conf, cur, kind, created, updated)`
 
-- A **circuit breaker** skips the LLM for 30 s after 3 consecutive failures.
-- The TLS connection to Groq is **pre-warmed** at startup and reused.
-- Replies are capped at ~30 words, which keeps generation short and also suits the age group.
-- The UI shows the measured latency of every reply, and `tests/smoke.py` checks it automatically, on localhost or on the live URL.
-- **Honest caveat:** on Render's free plan the service sleeps after inactivity, and the first request can take ~30 s. The front-end wakes it during the splash screen, and an UptimeRobot monitor pinging `/api/health` every 5 minutes keeps it warm.
-
-## 4. Safety (children)
-
-- Input guard: self-harm/abuse phrases lead to a calm reply that tells the child to speak to a trusted adult; phone numbers/addresses are never processed (the bot says “let's keep that a secret”); unkind words get a kindness redirect. These replies never reach the LLM.
-- System prompt forbids asking for personal information, lists, hard words, and telling a child they are wrong.
-- No accounts, no email, no tracking. The only stored data is a random session id and an optional first name.
-
-## 5. Data model
-
-`sessions(id, name, mood, level, stars, correct, total, streak, widx, target, aw, conf, cur, kind, …)`
 `messages(sid, role, content, mode, ts)` · `misses(sid, word, ts)`
 
-`target` is the word Dilly last taught; if the child says it, they earn a star and the next word is introduced (`widx`).
+- `target` is the word/phrase the child should say next (last taught word, or Word of the Day after Practice).
+- `widx` indexes `content.POOLS[level]`.
+- `aw` / `conf` / `cur` / `kind` are integer SEL counters. `state_view` maps each to `min(100, count * 12)`.
+- Cognitive meter: `min(100, round(stars * 5 + accuracy * 0.2))`.
+- Crane fill: `min(stars, 16) / 16` (eight SVG pieces).
 
-## 6. Trade-offs
+No accounts. Identity is a random 8–64 character `session_id` plus an optional first name (max 20, stripped of most punctuation).
 
-| Decision | Alternative | Why this way |
+## 4. Level progression L1–L3
+
+| Level | Name (`LEVEL_NAMES`) | Unlock | Chat pool (`POOLS`) | Play (`REG`) |
+|---|---|---|---|---|
+| 1 | Little Sprout | 0 stars | First words (apple, cat, …) | Emoji objects + colors |
+| 2 | Word Explorer | 6 stars | Numbers, hello, big/small, hot/cold | Counts, opposites, greetings |
+| 3 | Sentence Star | 14 stars | Tiny sentence words (happy, friend, …) | Fill-in-the-blank sentences |
+
+`level` stored on the session is `engine.level_for(stars)` after each chat or quiz update. Crossing a threshold sets `leveled_up` in the JSON; the UI shows an origami overlay.
+
+Chat target match: `matches_target` folds case and punctuation, then `\b` word-boundary search. On match, `source=praise`, `stars += 1`, `widx += 1`, next `pick_word`, **no Groq call**. Five praise templates rotate on `stars - 1`.
+
+Play: answers compared case-insensitively on the server. Wrong twice reveals the answer and records a miss.
+
+## 5. Child mode detection
+
+`detect_mode(text, mood, recent_modes)` — modes in code vs UI:
+
+| Code | UI | Trigger (from `engine.py`) |
 |---|---|---|
-| Cloud LLM (Groq) | Local model (Ollama) | A hosted URL cannot reach a laptop GPU. Groq is the fastest free option for the 2 s budget. |
-| Rules + LLM hybrid | LLM only | Guaranteed latency, safety and free offline operation when the API is down. |
-| SQLite on the instance | Postgres | Zero setup. Trade-off: Render's free disk is ephemeral, so progress can reset on redeploy (fine for a demo, swap for Postgres to scale). |
-| Mode detection by rules | Separate classifier model | Instant, explainable, shown in the UI. A small classifier could replace it later. |
-| Starlette + vanilla JS | FastAPI + React | Fewer moving parts, no build step, faster to ship and review. |
+| `support` | Here for you | Support regex (sad, cry, scared, …); or check-in mood in `{sad, angry, scared, tired}` unless the child asked to play/learn and last mode was not already support |
+| `engage` | Fun time | Bored/stop regex or play/game/story/joke/… regex; **or** last three assistant modes were all `learn` |
+| `learn` | Learning | Teach/learn/word/… regex; or last mode was `learn` and the message is ≤ 3 words (practice) |
+| `chat` | Chatting | Default (“Just chatting”) |
 
-## 7. Scaling and next steps
+Safety runs first and never calls the LLM: harm → tell a trusted adult; privacy (phone/address/school/last name) → refuse; rude words → kindness + breath.
 
-Move SQLite → Postgres, add per-session rate limiting, stream replies token-by-token, add a parent dashboard fed by the same SEL meters, replace emoji art with illustrated assets, add speech-pronunciation scoring.
+Mood check-in is a separate `POST /api/mood` path (`engine.mood_reply`), not `detect_mode`.
+
+## 6. Social-emotional learning and CSE Insight
+
+- **Mood check-in:** six buttons (happy, excited, calm, tired, sad, angry). Increments `aw`. Negative moods get a support reply; happy/excited get engage; calm gets chat.
+- **Support UI:** 14 s breathing orb in chat.
+- **SEL increments (`sel_delta`):** feeling words → awareness; `?` or why/how/what/who/where/when → curiosity; please/thank/sorry/friend/… → kindness. Target match and quiz correctness increment confidence.
+- **CSE Insight** (My Crane): bars for Thinking (cognitive), Feelings (awareness), Confidence, Curiosity, Kindness, plus `insight` copy that names the strongest/weakest meter and a tip (`TIPS`).
+
+## 7. Context handling
+
+For LLM turns, `llm.build_messages` builds: system (Dora persona, ≤ 2 short sentences, one emoji, no lists/markdown, never “you’re wrong”, never ask for address/phone/school, child name/level/stars/mood/misses/mode/task) + last 6 stored messages + current user text.
+
+Learn task: teach `POOLS` phrase and ask the child to say the word. Engage: one easy riddle/joke. Support: name the feeling, do not teach. Chat: talk, one question, do not teach unless asked.
+
+Word of the Day does not call the backend to pick the word: `app.js` uses the same `(key, emoji)` pairs as `POOLS` and `year * 372 + (month+1) * 31 + day` modulo the list. Practice only posts the chosen key so `target` is set.
+
+## 8. Latency strategy (< 2 s)
+
+| Step | Budget / behavior |
+|---|---|
+| Browser ↔ server | Typical LAN/WAN; splash also `GET /api/health` to wake a sleeping free-tier process |
+| Safety, `matches_target`, `detect_mode`, DB | In-process Python |
+| **Instant praise** (target match) | Template in `engine.instant_praise`; **no LLM**; `source=praise` |
+| Groq | Connect timeout 0.8 s, read `LLM_TIMEOUT` (default 1.4 s); `max_tokens` 80; TLS warmed at startup |
+| Circuit breaker | After 3 consecutive failures, skip Groq for 30 s |
+| Fallback | `engine.fallback` if the key is missing, breaker is open, or Groq fails/times out |
+| Measured end-to-end (typical chat) | fill in |
+
+Each chat response includes `latency_ms` and `Server-Timing`. The chat header shows it. `tests/smoke.py` asserts max of seven turns `< 2000` ms.
+
+Honest limit: Render’s free plan can sleep; first request after idle can be tens of seconds. The splash health ping and an optional `/api/health` uptime monitor are how the project deals with that—not a fix for the sleep itself.
+
+## 9. Trade-offs
+
+| Decision | Alternative | Why this way (from the code/deploy files) |
+|---|---|---|
+| Groq cloud LLM | Local Ollama | Hosted URL cannot use a laptop GPU; Groq is the configured provider |
+| Rules + LLM | LLM only | Safety, modes, target praise, and the 2 s cap must not wait on the network |
+| SQLite file | Postgres | Stdlib, zero extra service; Render free disk is ephemeral |
+| Regex modes | A classifier model | Instant and the reason is shown in the UI |
+| Starlette + vanilla JS | FastAPI + React | Six endpoints, no build, smaller cold start |
+| Instant praise templates | LLM celebration | Match path must add no model latency |
+
+## 10. Limitations
+
+- Session progress is lost if the SQLite file is wiped (typical on Render free redeploy/restart).
+- Mode detection is keyword/regex, not a full NLU model.
+- Dora does not score pronunciation; TTS/mic are browser APIs.
+- Chat messages are capped at 300 characters; LLM output is truncated after cleaning.
+- Quiz options are generated server-side but the visual content is emoji/CSS, not illustrated assets.
+- Word of the Day list is duplicated in `app.js` to avoid a fetch; it must stay aligned with `content.POOLS`.
+- No authentication, parent accounts, or multi-device sync.
+
+## 11. Future work
+
+Durable database if progress must survive deploys; token streaming of Groq replies; pronunciation scoring; illustrated quiz art; optional parent view over the same `state_view` meters. None of these are implemented.
