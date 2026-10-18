@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6ece1">
+<title>Sketchbook · Little Words Matter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main class="app" id="app">
+
+  <!-- SPLASH -->
+  <section class="screen active" id="s-splash">
+    <div class="sun-ray"></div>
+    <p class="wordmark">S K E T C H B O O K</p>
+    <p class="tagline">Little Words Matter</p>
+    <div class="splash-crane float" id="splashCrane"></div>
+    <label class="clay soft name-box"><span>What's your name?</span>
+      <input id="nameIn" maxlength="20" placeholder="Type here…" autocomplete="off"></label>
+    <button class="go-circle btn-dark" id="begin" aria-label="Begin">→</button>
+    <p class="begin-label">Let's begin</p>
+  </section>
+
+  <!-- HOME -->
+  <section class="screen" id="s-home">
+    <header class="top">
+      <div>
+        <p class="eyebrow" id="partday">Hello</p>
+        <h1 id="hello">Hello, Little Explorer ✧</h1>
+        <p class="sub" id="datetime">&nbsp;</p>
+      </div>
+      <div class="clock clay" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="#fff6ee"/>
+          <g stroke="#cdb8a6" stroke-width="2" stroke-linecap="round"><path d="M32 9v4M32 51v4M9 32h4M51 32h4"/></g>
+          <line id="hH" x1="32" y1="32" x2="32" y2="19" stroke="#2d2836" stroke-width="3.2" stroke-linecap="round"/>
+          <line id="hM" x1="32" y1="32" x2="32" y2="13" stroke="#e59a7a" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="32" cy="32" r="2.6" fill="#2d2836"/></svg>
+      </div>
+    </header>
+    <div class="chips"><span class="chip clay sage" id="lvChip">L1 · Little Sprout</span><span class="chip clay lav" id="starChip">⭐ 0</span></div>
+
+    <div class="dilly clay">
+      <div class="dilly-stage">
+        <img id="mascot" src="/static/img/mascot.webp" alt="Dilly, your doll friend">
+        <div class="bubble clay soft">How are you feeling today?</div>
+      </div>
+      <div class="moods" id="moods"></div>
+    </div>
+
+    <div class="tiles">
+      <button class="tile clay blue" data-go="learn"><i>🌱</i><b>Learn</b><small>New words</small></button>
+      <button class="tile clay" data-go="play"><i>🎈</i><b>Play</b><small>Quiz &amp; games</small></button>
+      <button class="tile clay sage" data-go="chat"><i>💬</i><b>Chat</b><small>Talk to Dilly</small></button>
+      <button class="tile clay lav" data-go="progress"><i>🪄</i><b>My Crane</b><small>See me grow</small></button>
+    </div>
+
+    <form class="ask clay soft" id="askForm">
+      <input id="askIn" placeholder="Say hi to Dilly…" autocomplete="off" maxlength="300">
+      <button class="send btn-dark" aria-label="Send">→</button>
+    </form>
+  </section>
+
+  <!-- CHAT -->
+  <section class="screen chat" id="s-chat">
+    <header class="bar">
+      <button class="back clay" data-go="home" aria-label="Back">‹</button>
+      <div class="who"><b>Dilly</b><span class="mode" id="modeBadge" data-mode="chat">💬 Chatting</span></div>
+      <span class="lat" id="lat" title="End-to-end response time">⚡ –</span>
+      <button class="icon clay" id="voiceBtn" aria-label="Voice on/off">🔊</button>
+    </header>
+    <p class="why" id="why">&nbsp;</p>
+    <div class="msgs" id="msgs"></div>
+    <div class="quick" id="quick"></div>
+    <form class="composer clay soft" id="chatForm">
+      <button type="button" class="mic" id="mic" aria-label="Speak">🎤</button>
+      <input id="chatIn" placeholder="Ask Dilly anything…" autocomplete="off" maxlength="300">
+      <button class="send btn-dark" aria-label="Send">→</button>
+    </form>
+  </section>
+
+  <!-- PLAY -->
+  <section class="screen" id="s-play">
+    <header class="bar">
+      <button class="back clay" data-go="home" aria-label="Back">‹</button>
+      <div class="who"><b>Play &amp; Learn</b><span class="sub2" id="plvl">L1 · Little Sprout</span></div>
+      <span class="chip clay lav" id="pStars">⭐ 0</span>
+    </header>
+    <div class="lvbar"><i id="lvFill"></i></div>
+    <div class="qcard clay soft" id="qcard">
+      <div class="qvisual" id="qvisual"></div>
+      <h2 id="qprompt">…</h2>
+      <div class="opts" id="opts"></div>
+      <p class="qfb" id="qfb">&nbsp;</p>
+      <button class="next btn-dark" id="qnext" hidden>Next →</button>
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section class="screen" id="s-progress">
+    <header class="bar">
+      <button class="back clay" data-go="home" aria-label="Back">‹</button>
+      <div class="who"><b>My Crane</b><span class="sub2">Little words, big dreams</span></div>
+    </header>
+    <div class="stage clay lav"><div class="float" id="progCrane"></div>
+      <p class="lvname" id="lvName">Level 1 · Little Sprout</p>
+      <p class="to-next" id="toNext"></p></div>
+    <div class="path" id="path"></div>
+    <div class="insight clay soft">
+      <p class="eyebrow">CSE Insight · Cognitive + Social-Emotional</p>
+      <div id="bars"></div>
+      <p class="note" id="note"></p>
+    </div>
+  </section>
+
+  <nav class="nav clay" id="nav" hidden>
+    <button data-go="home" aria-label="Home"><i>🏠</i><span>Home</span></button>
+    <button data-go="play" aria-label="Play"><i>🎈</i><span>Play</span></button>
+    <button data-go="chat" aria-label="Chat"><i>💬</i><span>Chat</span></button>
+    <button data-go="progress" aria-label="Crane"><i>🪄</i><span>Crane</span></button>
+  </nav>
+
+  <div class="overlay" id="ov" hidden>
+    <div class="clay soft card"><div class="big" id="ovCrane"></div><h2 id="ovT">Level up!</h2><p id="ovP"></p>
+      <button class="btn-dark pill" id="ovOk">Yay!</button></div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

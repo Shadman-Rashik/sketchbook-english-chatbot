@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2d2836"/></marker>
+    <filter id="s" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="3" dy="4" stdDeviation="4" flood-color="#b88c6c" flood-opacity=".3"/></filter>
+  </defs>
+  <rect width="1000" height="620" fill="#f8efe5"/>
+  <text x="500" y="38" text-anchor="middle" font-size="22" font-weight="700" fill="#2d2836">Sketchbook · System Architecture</text>
+  <text x="500" y="60" text-anchor="middle" font-size="13" fill="#8a8091">Little Words Matter: an English-learning friend for children under 7</text>
+
+  <!-- Browser -->
+  <rect x="30" y="90" width="230" height="400" rx="22" fill="#fdebdd" filter="url(#s)"/>
+  <text x="145" y="120" text-anchor="middle" font-size="15" font-weight="700" fill="#2d2836">Child's browser</text>
+  <text x="145" y="138" text-anchor="middle" font-size="11" fill="#8a8091">Single-page app · HTML / CSS / JS</text>
+  <g font-size="12" fill="#2d2836" text-anchor="middle">
+    <rect x="50" y="156" width="190" height="42" rx="12" fill="#c3d4e8"/><text x="145" y="175">Home · live clock/date</text><text x="145" y="190" font-size="10.5" fill="#55607a">mood check-in · mascot Dilly</text>
+    <rect x="50" y="208" width="190" height="42" rx="12" fill="#c6dccb"/><text x="145" y="227">Chat</text><text x="145" y="242" font-size="10.5" fill="#4d6a55">mode badge · latency badge</text>
+    <rect x="50" y="260" width="190" height="42" rx="12" fill="#f1b3a0"/><text x="145" y="279">Play (picture quiz)</text><text x="145" y="294" font-size="10.5" fill="#7a4a3b">levels L1 → L3 · stars</text>
+    <rect x="50" y="312" width="190" height="42" rx="12" fill="#d6cced"/><text x="145" y="331">My Crane · CSE Insight</text><text x="145" y="346" font-size="10.5" fill="#5b4f80">origami grows with progress</text>
+    <rect x="50" y="364" width="190" height="42" rx="12" fill="#fff6ee" stroke="#e0c9b6"/><text x="145" y="383">Web Speech API</text><text x="145" y="398" font-size="10.5" fill="#8a8091">voice out (TTS) · mic in</text>
+  </g>
+  <text x="145" y="440" text-anchor="middle" font-size="11" fill="#8a8091">Session id + name in localStorage</text>
+  <text x="145" y="458" text-anchor="middle" font-size="11" fill="#8a8091">No login · no personal data</text>
+
+  <!-- API -->
+  <rect x="330" y="90" width="400" height="400" rx="22" fill="#fff6ee" stroke="#e0c9b6" filter="url(#s)"/>
+  <text x="530" y="118" text-anchor="middle" font-size="15" font-weight="700" fill="#2d2836">Render web service · Starlette + Uvicorn (Python)</text>
+  <text x="530" y="136" text-anchor="middle" font-size="11" fill="#8a8091">POST /api/chat · /api/mood · /api/answer · GET /api/quiz · /api/state · /api/health</text>
+  <g font-size="12" fill="#2d2836" text-anchor="middle">
+    <rect x="350" y="152" width="170" height="44" rx="12" fill="#f1b3a0"/><text x="435" y="171" font-weight="700">1 Safety guard</text><text x="435" y="187" font-size="10.5">harm · privacy · rude words</text>
+    <rect x="540" y="152" width="170" height="44" rx="12" fill="#c6dccb"/><text x="625" y="171" font-weight="700">2 Mode detector</text><text x="625" y="187" font-size="10.5">learn · chat · engage · support</text>
+    <rect x="350" y="214" width="170" height="44" rx="12" fill="#c3d4e8"/><text x="435" y="233" font-weight="700">3 Context builder</text><text x="435" y="249" font-size="10.5">level · mood · misses · last 6 msgs</text>
+    <rect x="540" y="214" width="170" height="44" rx="12" fill="#d6cced"/><text x="625" y="233" font-weight="700">4 LLM client</text><text x="625" y="249" font-size="10.5">1.4 s timeout · circuit breaker</text>
+    <rect x="540" y="276" width="170" height="44" rx="12" fill="#fdebdd" stroke="#e0b9a0"/><text x="625" y="295" font-weight="700">Rule-based brain</text><text x="625" y="311" font-size="10.5">instant fallback (&lt; 10 ms)</text>
+    <rect x="350" y="276" width="170" height="44" rx="12" fill="#c3d4e8"/><text x="435" y="295" font-weight="700">5 Post-processor</text><text x="435" y="311" font-size="10.5">≤ 45 words · no markdown</text>
+    <rect x="350" y="352" width="170" height="52" rx="12" fill="#c6dccb"/><text x="435" y="372" font-weight="700">Progression + SEL</text><text x="435" y="388" font-size="10.5">stars → levels · 4 SEL meters</text><text x="435" y="400" font-size="10.5">cognitive score</text>
+    <rect x="540" y="352" width="170" height="52" rx="12" fill="#f1b3a0"/><text x="625" y="372" font-weight="700">Quiz engine</text><text x="625" y="388" font-size="10.5">item registry per level</text><text x="625" y="400" font-size="10.5">answers checked server-side</text>
+  </g>
+  <g stroke="#2d2836" stroke-width="1.6" fill="none" marker-end="url(#a)">
+    <path d="M520 174H536"/>
+    <path d="M625 196V205H435V211"/>
+    <path d="M520 236H536"/>
+    <path d="M580 258V266H435V272"/>
+    <path d="M680 258V272" stroke-dasharray="4 3"/>
+    <path d="M540 304H524" stroke-dasharray="4 3"/>
+  </g>
+  <text x="530" y="432" text-anchor="middle" font-size="11" fill="#8a8091">Latency budget: network ≈ 100 ms + LLM ≤ 1.4 s (or fallback ≈ 10 ms)</text>
+  <text x="530" y="450" text-anchor="middle" font-size="11" fill="#8a8091">+ app ≈ 5 ms → total &lt; 2 s · dashed = only if the LLM is slow</text>
+
+  <!-- Groq + DB -->
+  <rect x="790" y="110" width="180" height="120" rx="22" fill="#d6cced" filter="url(#s)"/>
+  <text x="880" y="150" text-anchor="middle" font-size="15" font-weight="700" fill="#2d2836">Groq API</text>
+  <text x="880" y="170" text-anchor="middle" font-size="11.5" fill="#2d2836">Llama 3.1 8B Instant</text>
+  <text x="880" y="188" text-anchor="middle" font-size="10.5" fill="#5b4f80">OpenAI-compatible · HTTPS</text>
+  <text x="880" y="206" text-anchor="middle" font-size="10.5" fill="#5b4f80">keep-alive connection</text>
+  <rect x="790" y="300" width="180" height="150" rx="22" fill="#c6dccb" filter="url(#s)"/>
+  <text x="880" y="334" text-anchor="middle" font-size="15" font-weight="700" fill="#2d2836">SQLite</text>
+  <g font-size="11.5" fill="#2d2836" text-anchor="middle"><text x="880" y="360">sessions · level · stars</text><text x="880" y="378">messages (chat history)</text><text x="880" y="396">misses (hard words)</text><text x="880" y="418" font-size="10.5" fill="#4d6a55">stdlib · zero-config</text></g>
+
+  <g stroke="#2d2836" stroke-width="1.8" fill="none" marker-start="url(#a)" marker-end="url(#a)">
+    <path d="M260 290H326"/><path d="M730 170H786"/><path d="M730 376H786"/>
+  </g>
+  <text x="293" y="280" text-anchor="middle" font-size="10.5" fill="#2d2836">HTTPS</text>
+  <text x="293" y="306" text-anchor="middle" font-size="10.5" fill="#2d2836">JSON</text>
+
+  <!-- footer -->
+  <rect x="30" y="520" width="940" height="70" rx="18" fill="#fdebdd"/>
+  <g font-size="12" fill="#2d2836">
+    <text x="50" y="545" font-weight="700">Design choices</text>
+    <text x="50" y="565">LLM for warmth and variety, rules for safety, mode detection and the latency guarantee. Stateless API + one SQLite file: simple to run, deploy and explain.</text>
+    <text x="50" y="582" fill="#8a8091">Deployed on Render (free tier) · source on GitHub · UptimeRobot pings /api/health to avoid cold starts.</text>
+  </g>
+</svg>
