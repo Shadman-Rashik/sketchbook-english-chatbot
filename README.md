@@ -51,6 +51,16 @@ Open http://127.0.0.1:8000. Without `GROQ_API_KEY` the app still runs on `engine
 python tests/smoke.py                       # local
 python tests/smoke.py https://THE-URL      # live, prints latency
 
+## Deploying ( Render ) 
+1. Push the repo to GitHub.
+2. Render: New, Web Service, select the repo, Python 3, Free plan.
+3. Build command: `pip install -r requirements.txt`
+4. Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+5. Add environment variables `GROQ_API_KEY` and `GROQ_MODEL`.
+6. Open the Render URL. `/health` should return **ok**.
+
+The free plan sleeps when idle, so the first request after a quiet period can be slow.
+
 
 ## Environment variables
 
