@@ -30,6 +30,10 @@ Design: [docs/SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md) · Architecture: [docs/AR
 | End-to-end under 2 s | Yes — 1.4 s Groq cap, fallback, instant praise; smoke test |
 | Live deployed URL | Render via `render.yaml` |
 
+
+## Stack
+Python, FastAPI, Groq LLM, SQLite, plain HTML/CSS/JavaScript, hosted on Render.
+
 ## Local setup
 
 Python 3.11+. From this directory (`sketchbook/sketchbook/` if the repo is nested):
